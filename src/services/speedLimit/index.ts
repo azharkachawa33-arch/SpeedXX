@@ -1,0 +1,1 @@
+export { SpeedLimitService, getSpeedLimitService } from './speedLimitService';
