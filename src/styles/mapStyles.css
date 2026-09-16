@@ -4,14 +4,38 @@
   height: 100%;
 }
 
+/* Safari-specific map container fixes */
+.maplibregl-map {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
 .current-location-marker {
   transition: all 0.3s ease;
+  will-change: transform;
 }
 
 .start-marker {
   transition: all 0.3s ease;
+  will-change: transform;
 }
 
 .end-marker {
   transition: all 0.3s ease;
+  will-change: transform;
+}
+
+/* Safari-specific: Improve map rendering performance */
+@media not all and (min-resolution:.001dpcm) {
+  @supports (-webkit-appearance:none) {
+    .maplibregl-map {
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-perspective: 1000;
+      perspective: 1000;
+    }
+  }
 }

@@ -126,7 +126,51 @@ export class LocationService {
           }
         },
         (error) => {
+          // Safari-specific error handling
           const gpsError = this.convertToGpsError(error);
+          
+          // Safari sometimes returns timeout on first successful position
+          // Retry with more lenient settings if timeout
+          if (error.code === 3 && this.lastPosition) {
+            // Use last known position instead of error
+            onSuccess(this.lastPosition);
+            return;
+          }
+          
+          // For position unavailable in Safari, try with lower accuracy
+          if (error.code === 2 && enableHighAccuracy) {
+            if (import.meta.env.DEV) {
+              console.log('Retrying with lower accuracy for Safari compatibility');
+            }
+            // Retry with lower accuracy
+            const retryOptions = {
+              enableHighAccuracy: false,
+              timeout: this.config.timeout * 2, // Double timeout
+              maximumAge: this.config.maximumAge * 2, // Allow older data
+            };
+            
+            try {
+              this.watchId = navigator.geolocation.watchPosition(
+                (retryPosition) => {
+                  const retryGpsPosition = this.convertToGpsPosition(retryPosition);
+                  if (this.isValidPosition(retryGpsPosition)) {
+                    this.lastPosition = retryGpsPosition;
+                    onSuccess(retryGpsPosition);
+                  } else {
+                    onError(gpsError);
+                  }
+                },
+                (retryError) => {
+                  onError(this.convertToGpsError(retryError));
+                },
+                retryOptions
+              );
+            } catch (retryError) {
+              onError(gpsError);
+            }
+            return;
+          }
+          
           onError(gpsError);
         },
         options

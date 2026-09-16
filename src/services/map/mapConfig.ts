@@ -3,6 +3,7 @@
 
 export const MAP_CONFIG = {
   // Map style URL - CartoDB Positron (light theme, more reliable)
+  // Safari compatibility: using HTTPS and simpler style URL
   styleUrl: 'https://basemaps.cartocdn.com/positron/positron_tiles.json',
   
   // Alternative styles (commented out, can be switched in production)
@@ -42,4 +43,8 @@ export const MAP_CONFIG = {
   simplifyTolerance: 0.00001, // Coordinate simplification tolerance
   minRoutePointDistance: 5, // Minimum distance between route points in meters
   minRoutePointTime: 1000, // Minimum time between route points in milliseconds
+  
+  // Safari compatibility settings
+  attributionControl: true,
+  hash: false,
 } as const;

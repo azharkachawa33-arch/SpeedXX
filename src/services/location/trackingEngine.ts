@@ -72,8 +72,28 @@ export class TrackingEngine {
         throw new Error('Geolocation is not available in this browser');
       }
 
-      // Get initial position
-      const initialPosition = await this.locationService.getCurrentPosition();
+      // Get initial position with Safari compatibility
+      let initialPosition: GpsPosition;
+      try {
+        initialPosition = await this.locationService.getCurrentPosition();
+      } catch (initialError) {
+        // Safari compatibility: retry with more lenient settings on timeout
+        const gpsError = this.convertToGpsError(initialError);
+        if (gpsError.retryable) {
+          if (import.meta.env.DEV) {
+            console.log('Initial position failed, retrying with lower accuracy for Safari');
+          }
+          // Update location service to use lower accuracy
+          this.locationService.updateConfig({
+            enableHighAccuracy: false,
+            timeout: 60000, // 60 seconds
+            maximumAge: 10000, // Allow 10 second old data
+          });
+          initialPosition = await this.locationService.getCurrentPosition();
+        } else {
+          throw initialError;
+        }
+      }
       
       if (!this.gpsFilter.meetsAccuracyRequirement(initialPosition)) {
         // Don't fail on poor accuracy for Safari - just log it in dev

@@ -62,6 +62,11 @@ export class MapController {
     this.container = container;
     
     try {
+      // Safari compatibility: ensure container has explicit dimensions
+      container.style.width = '100%';
+      container.style.height = '100%';
+      container.style.position = 'relative';
+
       this.map = new maplibregl.Map({
         container: container,
         style: MAP_CONFIG.styleUrl,
@@ -69,6 +74,19 @@ export class MapController {
         zoom: MAP_CONFIG.initialZoom,
         minZoom: MAP_CONFIG.minZoom,
         maxZoom: MAP_CONFIG.maxZoom,
+        attributionControl: MAP_CONFIG.attributionControl ? {} : false,
+        hash: MAP_CONFIG.hash,
+        // Safari-specific: improve rendering performance
+        transformRequest: (url, resourceType) => {
+          if (resourceType === 'Tile' || resourceType === 'Source') {
+            return {
+              url: url,
+              headers: {},
+              credentials: 'same-origin',
+            };
+          }
+          return { url, headers: {} };
+        },
       });
 
       if (this.map) {
@@ -80,9 +98,22 @@ export class MapController {
           this.addRouteSource();
         });
 
+        // Handle style loading (Safari-specific)
+        this.map.on('styledata', () => {
+          // Style loaded successfully
+        });
+
         // Handle map errors
         this.map.on('error', (e) => {
           console.error('Map error:', e);
+        });
+
+        // Handle style loading errors (Safari-specific)
+        this.map.on('styledata', () => {
+          // Check if style loaded successfully
+          if (!this.map?.getStyle()) {
+            console.error('Map style failed to load');
+          }
         });
 
         // Handle user interaction to stop follow mode
