@@ -26,14 +26,8 @@ export class TripStorageService extends IndexedDBService {
 
     try {
       const id = await this.put(STORE_NAME, trip);
-      if (import.meta.env.DEV) {
-        console.log('Trip saved successfully:', id);
-      }
       return id as string;
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Failed to save trip:', error);
-      }
       throw new Error('Trip could not be saved. Please try again.');
     }
   }
@@ -46,9 +40,6 @@ export class TripStorageService extends IndexedDBService {
     try {
       return await this.get<Trip>(STORE_NAME, id);
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Failed to get trip:', error);
-      }
       throw new Error('Failed to load trip.');
     }
   }
@@ -63,9 +54,6 @@ export class TripStorageService extends IndexedDBService {
       // Sort by createdAt descending (newest first)
       return trips.sort((a, b) => b.createdAt - a.createdAt);
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Failed to get all trips:', error);
-      }
       throw new Error('Failed to load trip history.');
     }
   }
@@ -77,13 +65,7 @@ export class TripStorageService extends IndexedDBService {
 
     try {
       await this.delete(STORE_NAME, id);
-      if (import.meta.env.DEV) {
-        console.log('Trip deleted successfully:', id);
-      }
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Failed to delete trip:', error);
-      }
       throw new Error('Failed to delete trip.');
     }
   }
@@ -95,13 +77,7 @@ export class TripStorageService extends IndexedDBService {
 
     try {
       await this.clear(STORE_NAME);
-      if (import.meta.env.DEV) {
-        console.log('All trips cleared successfully');
-      }
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Failed to clear trips:', error);
-      }
       throw new Error('Failed to clear trip history.');
     }
   }
@@ -114,7 +90,6 @@ export class TripStorageService extends IndexedDBService {
     try {
       return await this.count(STORE_NAME);
     } catch (error) {
-      console.error('Failed to get trip count:', error);
       return 0;
     }
   }

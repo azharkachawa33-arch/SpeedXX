@@ -67,9 +67,31 @@ export class MapController {
       container.style.height = '100%';
       container.style.position = 'relative';
 
+      // Use raster tiles for better compatibility
+      const rasterStyle = {
+        version: 8 as const,
+        sources: {
+          'osm-tiles': {
+            type: 'raster' as const,
+            tiles: [MAP_CONFIG.styleUrl],
+            tileSize: 256,
+            attribution: '© OpenStreetMap contributors',
+          },
+        },
+        layers: [
+          {
+            id: 'osm-tiles',
+            type: 'raster' as const,
+            source: 'osm-tiles',
+            minzoom: MAP_CONFIG.minZoom,
+            maxzoom: MAP_CONFIG.maxZoom,
+          },
+        ],
+      };
+
       this.map = new maplibregl.Map({
         container: container,
-        style: MAP_CONFIG.styleUrl,
+        style: rasterStyle,
         center: MAP_CONFIG.initialCenter as [number, number],
         zoom: MAP_CONFIG.initialZoom,
         minZoom: MAP_CONFIG.minZoom,
@@ -98,22 +120,9 @@ export class MapController {
           this.addRouteSource();
         });
 
-        // Handle style loading (Safari-specific)
-        this.map.on('styledata', () => {
-          // Style loaded successfully
-        });
-
         // Handle map errors
         this.map.on('error', (e) => {
-          console.error('Map error:', e);
-        });
-
-        // Handle style loading errors (Safari-specific)
-        this.map.on('styledata', () => {
-          // Check if style loaded successfully
-          if (!this.map?.getStyle()) {
-            console.error('Map style failed to load');
-          }
+          // Map error occurred - handled by UI
         });
 
         // Handle user interaction to stop follow mode
@@ -126,7 +135,6 @@ export class MapController {
         });
       }
     } catch (error) {
-      console.error('Failed to initialize map:', error);
       throw error;
     }
   }

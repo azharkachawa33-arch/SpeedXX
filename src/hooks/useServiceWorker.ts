@@ -10,7 +10,6 @@ export function useServiceWorker() {
       // Register service worker
       navigator.serviceWorker.register('/service-worker.js')
         .then((reg) => {
-          console.log('Service Worker registered:', reg);
           setRegistration(reg);
           registrationRef.current = reg;
 
@@ -32,12 +31,11 @@ export function useServiceWorker() {
           });
         })
         .catch((error) => {
-          console.error('Service Worker registration failed:', error);
+          // Service worker registration failed silently
         });
 
       // Listen for controller change
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('Service Worker controller changed');
         window.location.reload();
       });
     }

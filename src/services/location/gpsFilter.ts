@@ -42,23 +42,18 @@ export class GpsFilter {
    * Basic position validation
    */
   private isValidPosition(position: GpsPosition): boolean {
-    console.log('isValidPosition check for:', position);
-    
     // Check latitude range
     if (position.latitude < -90 || position.latitude > 90) {
-      console.log('Invalid latitude');
       return false;
     }
     
     // Check longitude range
     if (position.longitude < -180 || position.longitude > 180) {
-      console.log('Invalid longitude');
       return false;
     }
     
     // Check accuracy
     if (position.accuracy < 0 || position.accuracy > 10000) {
-      console.log('Invalid accuracy');
       return false;
     }
     
@@ -66,19 +61,16 @@ export class GpsFilter {
     const now = Date.now();
     const timestampDiff = Math.abs(now - position.timestamp);
     if (timestampDiff > 60000) {
-      console.log('Timestamp too old:', timestampDiff);
       return false; // More than 1 minute old
     }
     
     // Check speed if available
     if (position.speed !== null) {
       if (position.speed < 0 || position.speed > 200) {
-        console.log('Invalid speed:', position.speed);
         return false; // Max 200 m/s (720 km/h)
       }
     }
     
-    console.log('Position is valid');
     return true;
   }
 
@@ -143,7 +135,6 @@ export class GpsFilter {
    */
   meetsAccuracyRequirement(position: GpsPosition): boolean {
     const meetsAccuracy = position.accuracy <= this.config.minAccuracy;
-    console.log('Accuracy check:', position.accuracy, 'vs', this.config.minAccuracy, 'meets:', meetsAccuracy);
     return meetsAccuracy;
   }
 

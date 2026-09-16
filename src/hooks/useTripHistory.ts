@@ -26,7 +26,6 @@ export function useTripHistory() {
       const allTrips = await storage.getAllTrips();
       setTrips(allTrips);
     } catch (err) {
-      console.error('Failed to load trips:', err);
       setError('Failed to load trip history');
       setTrips([]);
     } finally {
@@ -46,7 +45,6 @@ export function useTripHistory() {
       // Update local state
       setTrips(prev => prev.filter(trip => trip.id !== id));
     } catch (err) {
-      console.error('Failed to delete trip:', err);
       throw new Error('Failed to delete trip');
     }
   }, []);
@@ -63,7 +61,6 @@ export function useTripHistory() {
       // Update local state
       setTrips([]);
     } catch (err) {
-      console.error('Failed to clear trips:', err);
       throw new Error('Failed to clear trip history');
     }
   }, []);
@@ -77,7 +74,6 @@ export function useTripHistory() {
       
       return await storage.getTripCount();
     } catch (err) {
-      console.error('Failed to get trip count:', err);
       return 0;
     }
   }, []);

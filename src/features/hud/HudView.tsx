@@ -123,7 +123,7 @@ export const HudView: React.FC = () => {
       await pauseTrip();
       setMonitoringActive(false);
     } catch (error) {
-      console.error('Failed to pause trip:', error);
+      // Pause failed silently
     }
   }, [pauseTrip, setMonitoringActive]);
 
@@ -132,7 +132,7 @@ export const HudView: React.FC = () => {
       await resumeTrip();
       setMonitoringActive(true);
     } catch (error) {
-      console.error('Failed to resume trip:', error);
+      // Resume failed silently
     }
   }, [resumeTrip, setMonitoringActive]);
 

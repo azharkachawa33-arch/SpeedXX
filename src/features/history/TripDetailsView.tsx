@@ -56,7 +56,6 @@ export const TripDetailsView: React.FC = () => {
           setAdvancedStats(stats);
         }
       } catch (err) {
-        console.error('Failed to load trip:', err);
         setError('Failed to load trip details');
       } finally {
         setLoading(false);
@@ -105,7 +104,6 @@ export const TripDetailsView: React.FC = () => {
         controller.destroy();
       };
     } catch (error) {
-      console.error('Failed to initialize map:', error);
       setMapError('Map could not be loaded');
     }
   }, [trip]);
@@ -128,7 +126,6 @@ export const TripDetailsView: React.FC = () => {
       });
       navigate('/history');
     } catch (err) {
-      console.error('Failed to delete trip:', err);
       addNotification({
         type: 'error',
         message: 'Failed to delete trip',
@@ -161,7 +158,6 @@ export const TripDetailsView: React.FC = () => {
         autoHide: true,
       });
     } catch (error) {
-      console.error('Failed to export JSON:', error);
       addNotification({
         type: 'error',
         message: 'Failed to export trip',
@@ -200,7 +196,6 @@ export const TripDetailsView: React.FC = () => {
         autoHide: true,
       });
     } catch (error) {
-      console.error('Failed to export CSV:', error);
       addNotification({
         type: 'error',
         message: 'Failed to export trip',
@@ -230,7 +225,6 @@ export const TripDetailsView: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Failed to share trip:', error);
       if ((error as Error).name !== 'AbortError') {
         addNotification({
           type: 'error',

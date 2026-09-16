@@ -22,7 +22,6 @@ export function useCompass() {
       setStatus(orientationServiceRef.current.getStatus());
       return permission;
     } catch (error) {
-      console.error('Failed to request compass permission:', error);
       return 'denied';
     }
   }, []);

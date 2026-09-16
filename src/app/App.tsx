@@ -12,8 +12,10 @@ import { BottomNavigation } from '../components/navigation/BottomNavigation';
 import { NotificationProvider, NotificationDisplay } from '../components/common/NotificationSystem';
 import { OnlineStatus } from '../components/common/OnlineStatus';
 import { LoadingScreen } from '../components/common/LoadingScreen';
+import { PermissionRequest } from '../components/common/PermissionRequest';
 import { useServiceWorker } from '../hooks/useServiceWorker';
 import { usePWA } from '../hooks/usePWA';
+import { usePermissions } from '../hooks/usePermissions';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Icon } from '../components/ui/Icon';
@@ -21,7 +23,27 @@ import { Icon } from '../components/ui/Icon';
 export const App: React.FC = () => {
   const { isWaiting, updateServiceWorker } = useServiceWorker();
   const { showIOSPrompt, dismissIOSPrompt } = usePWA();
+  const { permissions, requestLocationPermission } = usePermissions();
   const [isLoading, setIsLoading] = useState(true);
+  const [showPermissionRequest, setShowPermissionRequest] = useState(false);
+  const [permissionRequested, setPermissionRequested] = useState(false);
+
+  useEffect(() => {
+    // Check if location permission is needed
+    if (!permissionRequested && permissions.location.status === 'prompt') {
+      setShowPermissionRequest(true);
+    }
+  }, [permissions.location.status, permissionRequested]);
+
+  const handleLocationPermission = async (granted: boolean) => {
+    setPermissionRequested(true);
+    setShowPermissionRequest(false);
+    
+    if (!granted) {
+      // User denied location permission
+      // App will still work but with limited functionality
+    }
+  };
 
   useEffect(() => {
     // Hide loading screen after initialization
@@ -41,6 +63,17 @@ export const App: React.FC = () => {
       <Router>
         <div className="min-h-screen bg-[var(--color-background-primary)] text-[var(--color-text-primary)]">
           <OnlineStatus />
+          
+          {showPermissionRequest && (
+            <PermissionRequest
+              permissionType="location"
+              onAllow={async () => {
+                const granted = await requestLocationPermission();
+                handleLocationPermission(granted);
+              }}
+              onDeny={() => handleLocationPermission(false)}
+            />
+          )}
           
           {isWaiting && (
             <div className="fixed top-0 left-0 right-0 z-50 px-4 py-2 text-center text-sm font-medium bg-[var(--color-accent-primary)] text-white">

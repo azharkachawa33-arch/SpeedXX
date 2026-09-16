@@ -1,14 +1,13 @@
 // Map configuration
-// Uses OpenStreetMap tiles through CartoDB (free, no API key required)
+// Uses OpenStreetMap tiles (free, no API key required, Google Maps-like appearance)
 
 export const MAP_CONFIG = {
-  // Map style URL - CartoDB Positron (light theme, more reliable)
-  // Safari compatibility: using HTTPS and simpler style URL
-  styleUrl: 'https://basemaps.cartocdn.com/positron/positron_tiles.json',
+  // Map style URL - Standard OpenStreetMap tiles (Google Maps-like appearance)
+  styleUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   
   // Alternative styles (commented out, can be switched in production)
-  // Dark Matter: 'https://basemaps.cartocdn.com/dark_all/dark_all.json',
-  // Voyager: 'https://basemaps.cartocdn.com/voyager/voyager_tiles.json',
+  // CartoDB Positron: 'https://basemaps.cartocdn.com/positron/positron_tiles.json',
+  // CartoDB Dark: 'https://basemaps.cartocdn.com/dark_all/dark_all.json',
   
   // Initial view
   initialZoom: 15,

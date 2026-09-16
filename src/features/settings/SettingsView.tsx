@@ -147,7 +147,7 @@ export const SettingsView: React.FC = () => {
         const count = await getTripCount();
         setTripCount(count);
       } catch (error) {
-        console.error('Failed to get trip count:', error);
+        // Trip count load failed silently
       }
     };
     loadCount();

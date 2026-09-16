@@ -60,7 +60,6 @@ export const SpeedometerView: React.FC = () => {
 
   const [isStarting, setIsStarting] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
-  const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [showMapPreview, setShowMapPreview] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   
@@ -68,12 +67,6 @@ export const SpeedometerView: React.FC = () => {
   const mapControllerRef = useRef<MapController | null>(null);
 
   const gpsStatus = getGpsStatus();
-
-  // Add debug log helper
-  const addDebugLog = (message: string) => {
-    console.log(message);
-    setDebugLogs(prev => [...prev.slice(-9), `${new Date().toLocaleTimeString()}: ${message}`]);
-  };
 
   // Handle errors
   useEffect(() => {
@@ -103,9 +96,6 @@ export const SpeedometerView: React.FC = () => {
   }, [tripState, addNotification, navigate]);
 
   const handleStartTrip = async () => {
-    addDebugLog('Starting trip request...');
-    addDebugLog('GPS available: ' + gpsAvailable);
-    
     // Initialize audio context for speed limit alerts (user gesture)
     if (speedLimitConfig.enabled && speedLimitConfig.soundEnabled) {
       initializeAudio();
@@ -113,9 +103,7 @@ export const SpeedometerView: React.FC = () => {
     
     setIsStarting(true);
     try {
-      addDebugLog('Calling startTrip...');
       await startTrip();
-      addDebugLog('Trip started successfully');
     } catch (error) {
       let errorMessage = 'Failed to start trip';
       
@@ -136,8 +124,6 @@ export const SpeedometerView: React.FC = () => {
         errorMessage = 'Unknown error occurred. Please try again.';
       }
       
-      addDebugLog('Failed to start trip: ' + errorMessage);
-      console.error('Failed to start trip:', error);
       addNotification({
         type: 'error',
         message: errorMessage,
@@ -151,11 +137,9 @@ export const SpeedometerView: React.FC = () => {
   const handlePauseTrip = () => {
     try {
       pauseTrip();
-      addDebugLog('Trip paused');
       setMonitoringActive(false); // Stop speed limit monitoring on pause
     } catch (error) {
-      console.error('Failed to pause trip:', error);
-      addDebugLog('Failed to pause trip: ' + error);
+      // Handle error silently
     }
   };
 
@@ -163,11 +147,9 @@ export const SpeedometerView: React.FC = () => {
     setIsStarting(true);
     try {
       await resumeTrip();
-      addDebugLog('Trip resumed');
       setMonitoringActive(true); // Resume speed limit monitoring
     } catch (error) {
-      console.error('Failed to resume trip:', error);
-      addDebugLog('Failed to resume trip: ' + error);
+      // Handle error silently
     } finally {
       setIsStarting(false);
     }
@@ -177,11 +159,9 @@ export const SpeedometerView: React.FC = () => {
     setIsStopping(true);
     try {
       stopTrip();
-      addDebugLog('Trip stopped');
       setMonitoringActive(false); // Stop speed limit monitoring on stop
     } catch (error) {
-      console.error('Failed to stop trip:', error);
-      addDebugLog('Failed to stop trip: ' + error);
+      // Handle error silently
     } finally {
       setIsStopping(false);
     }
@@ -191,10 +171,8 @@ export const SpeedometerView: React.FC = () => {
     setIsStarting(true);
     try {
       await retryTrip();
-      addDebugLog('Retrying trip start...');
     } catch (error) {
-      console.error('Failed to retry trip:', error);
-      addDebugLog('Failed to retry trip: ' + error);
+      // Handle error silently
     } finally {
       setIsStarting(false);
     }
@@ -295,7 +273,7 @@ export const SpeedometerView: React.FC = () => {
         controller.destroy();
       };
     } catch (error) {
-      console.error('Failed to initialize map preview:', error);
+      // Map initialization failed - silently continue
     }
   }, [showMapPreview, currentPosition, route, tripState]);
 
@@ -440,22 +418,6 @@ export const SpeedometerView: React.FC = () => {
                   Retry
                 </Button>
               </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Debug Logs (for Safari debugging) */}
-      {debugLogs.length > 0 && (
-        <div className="px-4 py-4">
-          <Card padding="sm" className="border-[var(--color-border-primary)] bg-[var(--color-background-secondary)]">
-            <p className="text-xs text-[var(--color-text-secondary)] mb-2 font-medium">Debug Logs:</p>
-            <div className="space-y-1">
-              {debugLogs.map((log, index) => (
-                <p key={index} className="text-xs text-[var(--color-text-tertiary)] font-mono">
-                  {log}
-                </p>
-              ))}
             </div>
           </Card>
         </div>

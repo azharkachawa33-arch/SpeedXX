@@ -134,7 +134,6 @@ export const Icon: React.FC<IconProps> = ({ name, size = 24, className = '' }) =
   const icon = icons[name] || null;
 
   if (!icon) {
-    console.warn(`Icon "${name}" not found`);
     return null;
   }
 

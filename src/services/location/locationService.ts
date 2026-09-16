@@ -26,14 +26,12 @@ export class LocationService {
 
   isAvailable(): boolean {
     const available = 'geolocation' in navigator && navigator.geolocation !== null;
-    if (import.meta.env.DEV) {
-      console.log('GPS availability check:', available);
-    }
     return available;
   }
 
   async checkPermission(): Promise<PermissionState> {
     // Safari doesn't support permissions API for geolocation
+    // Always return 'prompt' to trigger permission request
     if (!('permissions' in navigator)) {
       return 'prompt';
     }
@@ -42,10 +40,18 @@ export class LocationService {
       const result = await navigator.permissions.query({ name: 'geolocation' });
       return result.state;
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Error checking geolocation permission:', error);
-      }
       return 'prompt';
+    }
+  }
+
+  // Force permission request for Safari
+  async requestPermission(): Promise<boolean> {
+    try {
+      await this.getCurrentPosition();
+      return true;
+    } catch (error) {
+      // Assume permission denied if error occurs
+      return false;
     }
   }
 
@@ -82,9 +88,6 @@ export class LocationService {
           options
         );
       } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('Exception in getCurrentPosition:', error);
-        }
         reject(this.createError('position_unavailable', 'Exception occurred while getting position'));
       }
     });
@@ -139,9 +142,6 @@ export class LocationService {
           
           // For position unavailable in Safari, try with lower accuracy
           if (error.code === 2 && enableHighAccuracy) {
-            if (import.meta.env.DEV) {
-              console.log('Retrying with lower accuracy for Safari compatibility');
-            }
             // Retry with lower accuracy
             const retryOptions = {
               enableHighAccuracy: false,
@@ -176,9 +176,6 @@ export class LocationService {
         options
       );
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Exception in startWatching:', error);
-      }
       onError(this.createError('position_unavailable', 'Exception occurred while watching position'));
     }
   }

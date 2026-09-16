@@ -54,9 +54,6 @@ export class OrientationService {
         this.permissionState = permission === 'granted' ? 'granted' : 'denied';
         return this.permissionState;
       } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('Compass permission request failed:', error);
-        }
         this.permissionState = 'denied';
         return 'denied';
       }
@@ -71,9 +68,6 @@ export class OrientationService {
     if (this.isActive) return;
 
     if (this.permissionState !== 'granted') {
-      if (import.meta.env.DEV) {
-        console.warn('Compass permission not granted');
-      }
       return;
     }
 

@@ -22,6 +22,7 @@ export class TrackingEngine {
   private errorCallback: ((error: GpsError) => void) | null = null;
   private tripCompletedCallback: ((trip: Trip) => void) | null = null;
   private tripTimerInterval: number | null = null;
+  private visibilityHandler: (() => void) | null = null;
 
   constructor(config: Partial<TrackingConfig> = {}) {
     // Apply GPS accuracy setting from settings
@@ -33,6 +34,24 @@ export class TrackingEngine {
     this.gpsFilter = new GpsFilter(this.locationService.getConfig());
     
     this.state = this.getInitialState();
+    
+    // Setup visibility change handler for background tracking
+    this.setupVisibilityHandler();
+  }
+
+  private setupVisibilityHandler(): void {
+    this.visibilityHandler = () => {
+      // When tab becomes visible again, ensure GPS is still running
+      if (this.state.state === 'running' && !this.locationService.isWatching()) {
+        // Restart GPS watching if it was stopped
+        this.locationService.startWatching(
+          (position) => this.handlePositionUpdate(position),
+          (error) => this.handleGpsError(error)
+        );
+      }
+    };
+
+    document.addEventListener('visibilitychange', this.visibilityHandler);
   }
 
   private getInitialState(): TrackingState {
@@ -57,9 +76,6 @@ export class TrackingEngine {
    * Start tracking a new trip
    */
   async startTrip(): Promise<void> {
-    if (import.meta.env.DEV) {
-      console.log('TrackingEngine: startTrip called, current state:', this.state.state);
-    }
     if (this.state.state !== 'idle') {
       throw new Error('Cannot start trip: not in idle state');
     }
@@ -80,9 +96,6 @@ export class TrackingEngine {
         // Safari compatibility: retry with more lenient settings on timeout
         const gpsError = this.convertToGpsError(initialError);
         if (gpsError.retryable) {
-          if (import.meta.env.DEV) {
-            console.log('Initial position failed, retrying with lower accuracy for Safari');
-          }
           // Update location service to use lower accuracy
           this.locationService.updateConfig({
             enableHighAccuracy: false,
@@ -96,10 +109,7 @@ export class TrackingEngine {
       }
       
       if (!this.gpsFilter.meetsAccuracyRequirement(initialPosition)) {
-        // Don't fail on poor accuracy for Safari - just log it in dev
-        if (import.meta.env.DEV) {
-          console.log('GPS accuracy below threshold, continuing for compatibility');
-        }
+        // Don't fail on poor accuracy for Safari - just continue for compatibility
       }
 
       // Start tracking
@@ -131,8 +141,9 @@ export class TrackingEngine {
       lastPauseStart: Date.now()
     });
 
-    // Stop GPS watching during pause
-    this.locationService.stopWatching();
+    // Keep GPS watching even during pause for trip persistence
+    // This ensures trip continues even if user changes tabs
+    // Don't stop GPS watching - only manual stop should stop tracking
   }
 
   /**
@@ -158,8 +169,12 @@ export class TrackingEngine {
         });
       }
 
-      // Resume tracking
-      this.startTrackingSession(currentPosition);
+      // Just resume state - GPS is already running from pause
+      this.updateState({
+        state: 'running',
+        currentPosition: currentPosition,
+        error: null,
+      });
       
     } catch (error) {
       const gpsError = this.convertToGpsError(error);
@@ -607,5 +622,10 @@ export class TrackingEngine {
     this.gpsFilter.reset();
     this.updateCallback = null;
     this.errorCallback = null;
+    
+    if (this.visibilityHandler) {
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+      this.visibilityHandler = null;
+    }
   }
 }

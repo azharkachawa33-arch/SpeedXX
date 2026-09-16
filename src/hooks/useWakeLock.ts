@@ -31,12 +31,10 @@ export function useWakeLock() {
 
   const requestWakeLock = useCallback(async () => {
     if (!isSupported) {
-      console.warn('Wake Lock API is not supported');
       return false;
     }
 
     if (!hudWakeLock) {
-      console.log('Wake Lock is disabled in settings');
       return false;
     }
 
@@ -51,14 +49,12 @@ export function useWakeLock() {
 
       // Listen for wake lock release
       wakeLockRef.current.addEventListener('release', () => {
-        console.log('Wake Lock was released');
         wakeLockRef.current = null;
         setIsLocked(false);
       });
 
       return true;
     } catch (error) {
-      console.error('Failed to request wake lock:', error);
       wakeLockRef.current = null;
       setIsLocked(false);
       return false;

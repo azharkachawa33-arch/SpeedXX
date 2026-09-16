@@ -219,7 +219,7 @@ export class SpeedLimitService {
       oscillator.start(this.audioContext.currentTime);
       oscillator.stop(this.audioContext.currentTime + 0.2);
     } catch (error) {
-      console.error('Failed to play alert sound:', error);
+      // Alert sound failed silently
     }
   }
 
@@ -231,7 +231,7 @@ export class SpeedLimitService {
     try {
       navigator.vibrate(200); // 200ms vibration
     } catch (error) {
-      console.error('Failed to vibrate:', error);
+      // Vibration failed silently
     }
   }
 
@@ -242,7 +242,7 @@ export class SpeedLimitService {
         this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
         this.audioInitialized = true;
       } catch (error) {
-        console.error('Failed to initialize audio:', error);
+        // Audio initialization failed silently
       }
     }
   }

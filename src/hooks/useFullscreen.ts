@@ -41,7 +41,6 @@ export function useFullscreen() {
 
   const requestFullscreen = useCallback(async (element?: HTMLElement) => {
     if (!isSupported) {
-      console.warn('Fullscreen API is not supported');
       return false;
     }
 
@@ -60,7 +59,6 @@ export function useFullscreen() {
       }
       return true;
     } catch (error) {
-      console.error('Failed to enter fullscreen:', error);
       return false;
     }
   }, [isSupported]);
@@ -82,7 +80,6 @@ export function useFullscreen() {
       }
       return true;
     } catch (error) {
-      console.error('Failed to exit fullscreen:', error);
       return false;
     }
   }, [isFullscreen]);

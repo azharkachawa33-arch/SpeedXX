@@ -86,7 +86,6 @@ export const MapView: React.FC = () => {
         controller.destroy();
       };
     } catch (error) {
-      console.error('Failed to initialize map:', error);
       setMapError('Map could not be loaded. Please check your internet connection.');
       setMapLoaded(false);
     }

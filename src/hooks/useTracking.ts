@@ -33,9 +33,6 @@ export function useTracking() {
 
   // Initialize tracking engine
   useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('useTracking: Initializing tracking engine');
-    }
     const engine = new TrackingEngine();
     trackingEngineRef.current = engine;
 
@@ -55,9 +52,7 @@ export function useTracking() {
 
     // Subscribe to errors
     engine.onError((error) => {
-      if (import.meta.env.DEV) {
-        console.error('useTracking: Tracking error:', error);
-      }
+      // Error handled silently
     });
 
     // Subscribe to trip completion
@@ -66,9 +61,7 @@ export function useTracking() {
         try {
           await storage.saveTrip(trip);
         } catch (error) {
-          if (import.meta.env.DEV) {
-            console.error('useTracking: Failed to save trip:', error);
-          }
+          // Trip save failed silently
         }
       }
     });
@@ -86,15 +79,11 @@ export function useTracking() {
 
   // Start trip
   const startTrip = useCallback(async () => {
-    console.log('useTracking: startTrip called');
     if (!trackingEngineRef.current) return;
     
     try {
-      console.log('useTracking: Calling engine.startTrip()');
       await trackingEngineRef.current.startTrip();
-      console.log('useTracking: Trip started successfully');
     } catch (error) {
-      console.error('useTracking: Failed to start trip:', error);
       throw error;
     }
   }, []);
@@ -106,7 +95,6 @@ export function useTracking() {
     try {
       trackingEngineRef.current.pauseTrip();
     } catch (error) {
-      console.error('Failed to pause trip:', error);
       throw error;
     }
   }, []);
@@ -118,7 +106,6 @@ export function useTracking() {
     try {
       await trackingEngineRef.current.resumeTrip();
     } catch (error) {
-      console.error('Failed to resume trip:', error);
       throw error;
     }
   }, []);
@@ -130,7 +117,6 @@ export function useTracking() {
     try {
       trackingEngineRef.current.stopTrip();
     } catch (error) {
-      console.error('Failed to stop trip:', error);
       throw error;
     }
   }, []);
@@ -142,7 +128,6 @@ export function useTracking() {
     try {
       trackingEngineRef.current.reset();
     } catch (error) {
-      console.error('Failed to reset trip:', error);
       throw error;
     }
   }, []);
@@ -258,7 +243,6 @@ export function useTracking() {
       trackingEngineRef.current.reset();
       await startTrip();
     } catch (error) {
-      console.error('Failed to retry trip:', error);
       throw error;
     }
   }, [startTrip]);

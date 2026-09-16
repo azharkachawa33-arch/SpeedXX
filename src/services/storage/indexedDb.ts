@@ -18,7 +18,6 @@ export class IndexedDBService {
       const request = indexedDB.open(this.dbName, this.version);
 
       request.onerror = () => {
-        console.error('IndexedDB error:', request.error);
         reject(request.error);
       };
 
