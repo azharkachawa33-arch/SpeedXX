@@ -88,10 +88,23 @@ export class TrackingEngine {
         throw new Error('Geolocation is not available in this browser');
       }
 
+      // iOS Safari specific handling
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      
       // Get initial position with Safari compatibility
       let initialPosition: GpsPosition;
       try {
-        initialPosition = await this.locationService.getCurrentPosition();
+        if (isIOS) {
+          // iOS Safari: Try with more lenient settings first
+          this.locationService.updateConfig({
+            enableHighAccuracy: false,
+            timeout: 15000,
+            maximumAge: 0,
+          });
+          initialPosition = await this.locationService.getCurrentPosition();
+        } else {
+          initialPosition = await this.locationService.getCurrentPosition();
+        }
       } catch (initialError) {
         // Safari compatibility: retry with more lenient settings on timeout
         const gpsError = this.convertToGpsError(initialError);

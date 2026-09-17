@@ -13,6 +13,7 @@ import { NotificationProvider, NotificationDisplay } from '../components/common/
 import { OnlineStatus } from '../components/common/OnlineStatus';
 import { LoadingScreen } from '../components/common/LoadingScreen';
 import { PermissionRequest } from '../components/common/PermissionRequest';
+import { IOSPermissionGuide } from '../components/common/IOSPermissionGuide';
 import { useServiceWorker } from '../hooks/useServiceWorker';
 import { usePWA } from '../hooks/usePWA';
 import { usePermissions } from '../hooks/usePermissions';
@@ -26,7 +27,15 @@ export const App: React.FC = () => {
   const { permissions, requestLocationPermission } = usePermissions();
   const [isLoading, setIsLoading] = useState(true);
   const [showPermissionRequest, setShowPermissionRequest] = useState(false);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [permissionRequested, setPermissionRequested] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+
+  useEffect(() => {
+    // Detect iOS device
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(iOS);
+  }, []);
 
   useEffect(() => {
     // Check if location permission is needed
@@ -39,9 +48,9 @@ export const App: React.FC = () => {
     setPermissionRequested(true);
     setShowPermissionRequest(false);
     
-    if (!granted) {
-      // User denied location permission
-      // App will still work but with limited functionality
+    if (!granted && isIOS) {
+      // Show iOS guide if permission denied on iOS
+      setShowIOSGuide(true);
     }
   };
 
@@ -73,6 +82,10 @@ export const App: React.FC = () => {
               }}
               onDeny={() => handleLocationPermission(false)}
             />
+          )}
+          
+          {showIOSGuide && (
+            <IOSPermissionGuide onClose={() => setShowIOSGuide(false)} />
           )}
           
           {isWaiting && (

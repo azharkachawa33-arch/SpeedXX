@@ -24,7 +24,18 @@ export const usePermissions = () => {
     }));
 
     try {
-      const granted = await locationService.requestPermission();
+      // Check if iOS device
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      
+      let granted = false;
+      if (isIOS) {
+        // Use iOS-specific permission request
+        granted = await locationService.requestIOSPermission();
+      } else {
+        // Use standard permission request
+        granted = await locationService.requestPermission();
+      }
+      
       setPermissions(prev => ({
         ...prev,
         location: { status: granted ? 'granted' : 'denied', isLoading: false },
