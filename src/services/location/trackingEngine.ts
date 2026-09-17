@@ -88,41 +88,11 @@ export class TrackingEngine {
         throw new Error('Geolocation is not available in this browser');
       }
 
-      // iOS Safari specific handling
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-      
-      // Get initial position with Safari compatibility
-      let initialPosition: GpsPosition;
-      try {
-        if (isIOS) {
-          // iOS Safari: Try with more lenient settings first
-          this.locationService.updateConfig({
-            enableHighAccuracy: false,
-            timeout: 15000,
-            maximumAge: 0,
-          });
-          initialPosition = await this.locationService.getCurrentPosition();
-        } else {
-          initialPosition = await this.locationService.getCurrentPosition();
-        }
-      } catch (initialError) {
-        // Safari compatibility: retry with more lenient settings on timeout
-        const gpsError = this.convertToGpsError(initialError);
-        if (gpsError.retryable) {
-          // Update location service to use lower accuracy
-          this.locationService.updateConfig({
-            enableHighAccuracy: false,
-            timeout: 60000, // 60 seconds
-            maximumAge: 10000, // Allow 10 second old data
-          });
-          initialPosition = await this.locationService.getCurrentPosition();
-        } else {
-          throw initialError;
-        }
-      }
+      // Get initial position
+      const initialPosition = await this.locationService.getCurrentPosition();
       
       if (!this.gpsFilter.meetsAccuracyRequirement(initialPosition)) {
-        // Don't fail on poor accuracy for Safari - just continue for compatibility
+        // Don't fail on poor accuracy - just continue for compatibility
       }
 
       // Start tracking

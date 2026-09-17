@@ -44,90 +44,14 @@ export class LocationService {
     }
   }
 
-  // Force permission request for Safari
+  // Simple permission check
   async requestPermission(): Promise<boolean> {
-    // iOS Safari specific permission handling
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    
     try {
-      // For iOS Safari, try with more lenient settings first
-      if (isIOS) {
-        const iOSOptions = {
-          enableHighAccuracy: false, // iOS works better with this false initially
-          timeout: 10000, // Shorter timeout for permission check
-          maximumAge: 0,
-        };
-        
-        await new Promise<void>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              // Success - permission granted
-              resolve();
-            },
-            (error) => {
-              // If permission denied, try one more time with user gesture
-              if (error.code === 1) {
-                // Permission denied - might need user to enable in settings
-                reject(error);
-              } else {
-                // Other error - might be timeout or unavailable, try again
-                reject(error);
-              }
-            },
-            iOSOptions
-          );
-        });
-        
-        return true;
-      } else {
-        // Non-iOS browsers
-        await this.getCurrentPosition();
-        return true;
-      }
-    } catch (error) {
-      // For iOS, check if it's a permission error
-      if (isIOS) {
-        // On iOS, we might need to guide user to settings
-        return false;
-      }
-      return false;
-    }
-  }
-
-  // iOS-specific manual permission request
-  async requestIOSPermission(): Promise<boolean> {
-    try {
-      // iOS Safari requires explicit user gesture for permission
-      const iOSOptions = {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
-      };
-      
-      await new Promise<void>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            resolve();
-          },
-          (error) => {
-            reject(error);
-          },
-          iOSOptions
-        );
-      });
-      
+      await this.getCurrentPosition();
       return true;
     } catch (error) {
       return false;
     }
-  }
-
-  // Check if device is iOS
-  isIOS(): boolean {
-    const userAgent = navigator.userAgent;
-    const isIOSDevice = /iPad|iPhone|iPod/.test(userAgent);
-    const isNotIE = !(window as any).MSStream;
-    return isIOSDevice && isNotIE;
   }
 
   getCurrentPosition(): Promise<GpsPosition> {
@@ -137,59 +61,30 @@ export class LocationService {
         return;
       }
 
-      // Detect iOS device
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-
       // Apply GPS accuracy setting from settings
       const settingsService = getSettingsService();
       const gpsAccuracy = settingsService.getGpsAccuracy();
+      const enableHighAccuracy = gpsAccuracy === 'high';
       
-      // Safari compatibility: use standard options with fallback
+      // Simple, standard options for all browsers including iOS
       const options = {
-        enableHighAccuracy: isIOS ? false : (gpsAccuracy === 'high'), // iOS works better with false initially
-        timeout: isIOS ? 15000 : this.config.timeout, // Shorter timeout for iOS permission check
+        enableHighAccuracy,
+        timeout: this.config.timeout,
         maximumAge: this.config.maximumAge,
       };
       
-      // Add error boundary for Safari
-      try {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const gpsPosition = this.convertToGpsPosition(position);
-            resolve(gpsPosition);
-          },
-          (error) => {
-            const gpsError = this.convertToGpsError(error);
-            
-            // iOS specific: If permission denied, try with different approach
-            if (isIOS && error.code === 1) {
-              // Permission denied - might need user to enable in settings
-              // Try one more time with different options
-              const retryOptions = {
-                enableHighAccuracy: true,
-                timeout: 20000,
-                maximumAge: 0,
-              };
-              
-              navigator.geolocation.getCurrentPosition(
-                (retryPosition) => {
-                  const retryGpsPosition = this.convertToGpsPosition(retryPosition);
-                  resolve(retryGpsPosition);
-                },
-                (retryError) => {
-                  reject(gpsError);
-                },
-                retryOptions
-              );
-            } else {
-              reject(gpsError);
-            }
-          },
-          options
-        );
-      } catch (error) {
-        reject(this.createError('position_unavailable', 'Exception occurred while getting position'));
-      }
+      // Standard getCurrentPosition call
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const gpsPosition = this.convertToGpsPosition(position);
+          resolve(gpsPosition);
+        },
+        (error) => {
+          const gpsError = this.convertToGpsError(error);
+          reject(gpsError);
+        },
+        options
+      );
     });
   }
 
@@ -204,114 +99,35 @@ export class LocationService {
 
     this.callbacks = { onSuccess, onError };
 
-    // Detect iOS device
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-
     // Apply GPS accuracy setting from settings
     const settingsService = getSettingsService();
     const gpsAccuracy = settingsService.getGpsAccuracy();
+    const enableHighAccuracy = gpsAccuracy === 'high';
     
-    // Safari compatibility options
+    // Standard options for all browsers
     const options = {
-      enableHighAccuracy: isIOS ? false : (gpsAccuracy === 'high'), // iOS works better with false initially
-      timeout: isIOS ? 20000 : this.config.timeout, // Longer timeout for iOS
-      maximumAge: isIOS ? 5000 : this.config.maximumAge, // Allow some cached data for iOS
+      enableHighAccuracy,
+      timeout: this.config.timeout,
+      maximumAge: this.config.maximumAge,
     };
     
-    try {
-      this.watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const gpsPosition = this.convertToGpsPosition(position);
-          
-          if (this.isValidPosition(gpsPosition)) {
-            this.lastPosition = gpsPosition;
-            onSuccess(gpsPosition);
-          } else {
-            onError(this.createError('invalid_data', 'Invalid GPS position received'));
-          }
-        },
-        (error) => {
-          // Safari-specific error handling
-          const gpsError = this.convertToGpsError(error);
-          
-          // Safari sometimes returns timeout on first successful position
-          // Retry with more lenient settings if timeout
-          if (error.code === 3 && this.lastPosition) {
-            // Use last known position instead of error
-            onSuccess(this.lastPosition);
-            return;
-          }
-          
-          // iOS specific: If permission denied during watch, try with different approach
-          if (isIOS && error.code === 1) {
-            // Permission denied - might need user to enable in settings
-            // Try with more lenient settings
-            const retryOptions = {
-              enableHighAccuracy: false,
-              timeout: 30000,
-              maximumAge: 10000,
-            };
-            
-            try {
-              this.watchId = navigator.geolocation.watchPosition(
-                (retryPosition) => {
-                  const retryGpsPosition = this.convertToGpsPosition(retryPosition);
-                  if (this.isValidPosition(retryGpsPosition)) {
-                    this.lastPosition = retryGpsPosition;
-                    onSuccess(retryGpsPosition);
-                  } else {
-                    onError(gpsError);
-                  }
-                },
-                (retryError) => {
-                  onError(this.convertToGpsError(retryError));
-                },
-                retryOptions
-              );
-            } catch (retryError) {
-              onError(gpsError);
-            }
-            return;
-          }
-          
-          // For position unavailable in Safari, try with lower accuracy
-          if (error.code === 2 && options.enableHighAccuracy) {
-            // Retry with lower accuracy
-            const retryOptions = {
-              enableHighAccuracy: false,
-              timeout: this.config.timeout * 2, // Double timeout
-              maximumAge: this.config.maximumAge * 2, // Allow older data
-            };
-            
-            try {
-              this.watchId = navigator.geolocation.watchPosition(
-                (retryPosition) => {
-                  const retryGpsPosition = this.convertToGpsPosition(retryPosition);
-                  if (this.isValidPosition(retryGpsPosition)) {
-                    this.lastPosition = retryGpsPosition;
-                    onSuccess(retryGpsPosition);
-                  } else {
-                    onError(gpsError);
-                  }
-                },
-                (retryError) => {
-                  onError(this.convertToGpsError(retryError));
-                },
-                retryOptions
-              );
-            } catch (retryError) {
-              onError(gpsError);
-            }
-            return;
-          }
-          
-          onError(gpsError);
-        },
-        options
-      );
-    } catch (error) {
-      onError(this.createError('position_unavailable', 'Exception occurred while watching position'));
-    }
+    this.watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const gpsPosition = this.convertToGpsPosition(position);
+        
+        if (this.isValidPosition(gpsPosition)) {
+          this.lastPosition = gpsPosition;
+          onSuccess(gpsPosition);
+        } else {
+          onError(this.createError('invalid_data', 'Invalid GPS position received'));
+        }
+      },
+      (error) => {
+        const gpsError = this.convertToGpsError(error);
+        onError(gpsError);
+      },
+      options
+    );
   }
 
   stopWatching(): void {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Icon } from '../ui/Icon';
@@ -17,13 +17,6 @@ export const PermissionRequest: React.FC<PermissionRequestProps> = ({
   onCancel,
 }) => {
   const [isVisible, setIsVisible] = useState(true);
-  const [isIOS, setIsIOS] = useState(false);
-
-  useEffect(() => {
-    // Detect iOS device
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    setIsIOS(iOS);
-  }, []);
 
   const handleAllow = async () => {
     setIsVisible(false);
@@ -46,11 +39,8 @@ export const PermissionRequest: React.FC<PermissionRequestProps> = ({
         return {
           icon: 'location',
           title: 'Location Permission',
-          description: isIOS 
-            ? 'SpeedX needs access to your location to track your speed, distance, and route. On iOS, you may need to allow location access in Safari settings if the popup doesn\'t appear. Your location data stays on your device and is never shared.'
-            : 'SpeedX needs access to your location to track your speed, distance, and route. Your location data stays on your device and is never shared.',
+          description: 'SpeedX needs access to your location to track your speed, distance, and route. Your location data stays on your device and is never shared.',
           color: 'text-[var(--color-accent-warning)]',
-          iOSNote: isIOS ? 'Note: If you don\'t see a permission popup, go to Settings > Safari > Location > Ask' : '',
         };
       case 'notification':
         return {
@@ -58,7 +48,6 @@ export const PermissionRequest: React.FC<PermissionRequestProps> = ({
           title: 'Notification Permission',
           description: 'Enable notifications to receive speed limit alerts and trip updates.',
           color: 'text-[var(--color-accent-info)]',
-          iOSNote: '',
         };
       case 'orientation':
         return {
@@ -66,7 +55,6 @@ export const PermissionRequest: React.FC<PermissionRequestProps> = ({
           title: 'Motion Sensors Permission',
           description: 'Access to device orientation and motion sensors for compass and heading information.',
           color: 'text-[var(--color-accent-success)]',
-          iOSNote: '',
         };
       default:
         return {
@@ -74,7 +62,6 @@ export const PermissionRequest: React.FC<PermissionRequestProps> = ({
           title: 'Permission Required',
           description: 'This permission is required for the app to function properly.',
           color: 'text-[var(--color-text-primary)]',
-          iOSNote: '',
         };
     }
   };
@@ -95,15 +82,9 @@ export const PermissionRequest: React.FC<PermissionRequestProps> = ({
             {details.title}
           </h2>
           
-          <p className="text-[var(--color-text-secondary)] text-sm mb-4">
+          <p className="text-[var(--color-text-secondary)] text-sm mb-6">
             {details.description}
           </p>
-          
-          {details.iOSNote && (
-            <p className="text-[var(--color-accent-warning)] text-xs mb-4 bg-[var(--color-background-tertiary)] p-2 rounded">
-              {details.iOSNote}
-            </p>
-          )}
           
           <div className="flex flex-col gap-3 w-full">
             <Button onClick={handleAllow} variant="primary" size="lg">
