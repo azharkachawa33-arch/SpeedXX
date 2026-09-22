@@ -62,7 +62,7 @@ export class MapController {
     this.container = container;
     
     try {
-      // Safari compatibility: ensure container has explicit dimensions
+      // Ensure container has explicit dimensions
       container.style.width = '100%';
       container.style.height = '100%';
       container.style.position = 'relative';
@@ -98,17 +98,6 @@ export class MapController {
         maxZoom: MAP_CONFIG.maxZoom,
         attributionControl: MAP_CONFIG.attributionControl ? {} : false,
         hash: MAP_CONFIG.hash,
-        // Safari-specific: improve rendering performance
-        transformRequest: (url, resourceType) => {
-          if (resourceType === 'Tile' || resourceType === 'Source') {
-            return {
-              url: url,
-              headers: {},
-              credentials: 'same-origin',
-            };
-          }
-          return { url, headers: {} };
-        },
       });
 
       if (this.map) {

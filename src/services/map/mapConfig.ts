@@ -43,7 +43,7 @@ export const MAP_CONFIG = {
   minRoutePointDistance: 5, // Minimum distance between route points in meters
   minRoutePointTime: 1000, // Minimum time between route points in milliseconds
   
-  // Safari compatibility settings
+  // Chrome-optimized settings
   attributionControl: true,
   hash: false,
 } as const;

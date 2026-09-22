@@ -54,27 +54,16 @@ export const MapView: React.FC = () => {
       };
       controller.on('error', handleError);
 
-      // Safari compatibility: longer timeout and better fallback handling
+      // Chrome-optimized timeout
       const timeoutId = setTimeout(() => {
         if (!mapLoaded && !mapError) {
-          // Check if map is actually loaded by checking the controller
           if (controller.isLoaded()) {
             setMapLoaded(true);
           } else {
-            // Safari sometimes fires load event late, give it more time
-            const secondTimeout = setTimeout(() => {
-              if (!mapLoaded && !mapError) {
-                if (controller.isLoaded()) {
-                  setMapLoaded(true);
-                } else {
-                  setMapError('Map took too long to load. Please check your internet connection and refresh.');
-                }
-              }
-            }, 5000); // Additional 5 seconds
-            return () => clearTimeout(secondTimeout);
+            setMapError('Map took too long to load. Please check your internet connection and refresh.');
           }
         }
-      }, 8000); // Increased to 8 seconds for Safari
+      }, 5000); // 5 seconds for Chrome
 
       return () => {
         clearTimeout(timeoutId);

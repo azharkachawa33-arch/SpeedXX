@@ -3,9 +3,9 @@ import { getSettingsService } from '../settings/settingsService';
 
 const DEFAULT_CONFIG: TrackingConfig = {
   enableHighAccuracy: true,
-  timeout: 30000, // Increased to 30s for Safari (Safari can be slower)
+  timeout: 10000, // 10 seconds for Chrome
   maximumAge: 0,
-  minAccuracy: 1000, // Increased to 1000m for Safari (more lenient)
+  minAccuracy: 100, // 100m accuracy requirement
   maxSpeedJump: 50, // 50 m/s (180 km/h) maximum jump
   maxDistanceJump: 500, // 500 meters maximum jump
   smoothingFactor: 0.3,
@@ -27,6 +27,10 @@ export class LocationService {
   isAvailable(): boolean {
     const available = 'geolocation' in navigator && navigator.geolocation !== null;
     return available;
+  }
+
+  isChrome(): boolean {
+    return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
   }
 
   async checkPermission(): Promise<PermissionState> {
@@ -66,11 +70,11 @@ export class LocationService {
       const gpsAccuracy = settingsService.getGpsAccuracy();
       const enableHighAccuracy = gpsAccuracy === 'high';
       
-      // Simple, standard options for all browsers including iOS
+      // Chrome-optimized options
       const options = {
-        enableHighAccuracy,
-        timeout: this.config.timeout,
-        maximumAge: this.config.maximumAge,
+        enableHighAccuracy: enableHighAccuracy,
+        timeout: this.isChrome() ? 15000 : this.config.timeout,
+        maximumAge: this.isChrome() ? 5000 : this.config.maximumAge,
       };
       
       // Standard getCurrentPosition call
@@ -104,11 +108,11 @@ export class LocationService {
     const gpsAccuracy = settingsService.getGpsAccuracy();
     const enableHighAccuracy = gpsAccuracy === 'high';
     
-    // Standard options for all browsers
+    // Chrome-optimized options
     const options = {
-      enableHighAccuracy,
-      timeout: this.config.timeout,
-      maximumAge: this.config.maximumAge,
+      enableHighAccuracy: enableHighAccuracy,
+      timeout: this.isChrome() ? 20000 : this.config.timeout,
+      maximumAge: this.isChrome() ? 5000 : this.config.maximumAge,
     };
     
     this.watchId = navigator.geolocation.watchPosition(
@@ -195,13 +199,13 @@ export class LocationService {
     if (position.latitude < -90 || position.latitude > 90) return false;
     if (position.longitude < -180 || position.longitude > 180) return false;
     
-    // Check for reasonable accuracy
-    if (position.accuracy < 0 || position.accuracy > 10000) return false;
+    // Check for reasonable accuracy (more lenient for Chrome)
+    if (position.accuracy < 0 || position.accuracy > 50000) return false; // 50km max
     
-    // Check for reasonable timestamp (not too old or in future)
+    // Check for reasonable timestamp (more lenient for Chrome)
     const now = Date.now();
     const timestampDiff = Math.abs(now - position.timestamp);
-    if (timestampDiff > 60000) return false; // More than 1 minute difference
+    if (timestampDiff > 300000) return false; // 5 minutes max difference
     
     // Check for reasonable speed if available
     if (position.speed !== null && (position.speed < 0 || position.speed > 200)) return false; // Max 200 m/s (720 km/h)
