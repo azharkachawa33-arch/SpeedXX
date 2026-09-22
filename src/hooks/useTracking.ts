@@ -70,10 +70,8 @@ export function useTracking() {
     // This allows trip to continue running in background when user navigates to other tabs
     // Cleanup only happens when user explicitly stops the trip or app closes
     return () => {
-      // Only cleanup if trip is not running
-      if (engine.getState().state === 'idle') {
-        engine.cleanup();
-      }
+      // Never cleanup automatically - only on explicit stop
+      // This ensures trip continues across tab changes
     };
   }, []); // Run once on mount
 

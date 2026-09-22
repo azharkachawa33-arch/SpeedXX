@@ -52,16 +52,16 @@ export class GpsFilter {
       return false;
     }
     
-    // Check accuracy
-    if (position.accuracy < 0 || position.accuracy > 10000) {
-      return false;
+    // Check accuracy (more lenient for Chrome)
+    if (position.accuracy < 0 || position.accuracy > 50000) {
+      return false; // 50km max for Chrome
     }
     
-    // Check timestamp freshness
+    // Check timestamp freshness (more lenient for Chrome)
     const now = Date.now();
     const timestampDiff = Math.abs(now - position.timestamp);
-    if (timestampDiff > 60000) {
-      return false; // More than 1 minute old
+    if (timestampDiff > 300000) {
+      return false; // 5 minutes max for Chrome
     }
     
     // Check speed if available
@@ -90,22 +90,22 @@ export class GpsFilter {
       position.longitude
     );
     
-    // Check distance jump
-    if (distance > this.config.maxDistanceJump) {
+    // More lenient distance jump for Chrome (1000m vs 500m)
+    if (distance > 1000) {
       return true;
     }
 
     // Check speed jump
     if (position.speed !== null && this.lastValidPosition.speed !== null) {
       const speedDiff = Math.abs(position.speed - this.lastValidPosition.speed);
-      if (speedDiff > this.config.maxSpeedJump) {
+      if (speedDiff > 100) { // More lenient (100 m/s vs 50 m/s)
         return true;
       }
     }
 
     // Calculate derived speed from distance/time
     const derivedSpeed = distance / timeDiff;
-    if (derivedSpeed > this.config.maxSpeedJump) {
+    if (derivedSpeed > 100) { // More lenient (100 m/s vs 50 m/s)
       return true;
     }
 
@@ -134,7 +134,9 @@ export class GpsFilter {
    * Check if position meets minimum accuracy requirements
    */
   meetsAccuracyRequirement(position: GpsPosition): boolean {
-    const meetsAccuracy = position.accuracy <= this.config.minAccuracy;
+    // More lenient accuracy requirement for Chrome (500m vs 1000m)
+    const maxAccuracy = 500; // 500 meters for better Chrome compatibility
+    const meetsAccuracy = position.accuracy <= maxAccuracy;
     return meetsAccuracy;
   }
 

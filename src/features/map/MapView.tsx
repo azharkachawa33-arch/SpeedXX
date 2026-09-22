@@ -54,7 +54,7 @@ export const MapView: React.FC = () => {
       };
       controller.on('error', handleError);
 
-      // Chrome-optimized timeout
+      // Simple timeout for Chrome
       const timeoutId = setTimeout(() => {
         if (!mapLoaded && !mapError) {
           if (controller.isLoaded()) {
@@ -63,7 +63,7 @@ export const MapView: React.FC = () => {
             setMapError('Map took too long to load. Please check your internet connection and refresh.');
           }
         }
-      }, 5000); // 5 seconds for Chrome
+      }, 3000); // 3 seconds for Chrome
 
       return () => {
         clearTimeout(timeoutId);

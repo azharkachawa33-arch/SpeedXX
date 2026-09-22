@@ -3,11 +3,11 @@ import { getSettingsService } from '../settings/settingsService';
 
 const DEFAULT_CONFIG: TrackingConfig = {
   enableHighAccuracy: true,
-  timeout: 10000, // 10 seconds for Chrome
-  maximumAge: 0,
-  minAccuracy: 100, // 100m accuracy requirement
-  maxSpeedJump: 50, // 50 m/s (180 km/h) maximum jump
-  maxDistanceJump: 500, // 500 meters maximum jump
+  timeout: 60000, // 60 seconds for Chrome background
+  maximumAge: 30000, // 30 seconds for Chrome background
+  minAccuracy: 500, // 500m accuracy requirement for Chrome
+  maxSpeedJump: 100, // 100 m/s (360 km/h) maximum jump for Chrome
+  maxDistanceJump: 1000, // 1000 meters maximum jump for Chrome
   smoothingFactor: 0.3,
 };
 
@@ -70,11 +70,11 @@ export class LocationService {
       const gpsAccuracy = settingsService.getGpsAccuracy();
       const enableHighAccuracy = gpsAccuracy === 'high';
       
-      // Chrome-optimized options
+      // Use standard config values (already optimized for Chrome)
       const options = {
         enableHighAccuracy: enableHighAccuracy,
-        timeout: this.isChrome() ? 15000 : this.config.timeout,
-        maximumAge: this.isChrome() ? 5000 : this.config.maximumAge,
+        timeout: this.config.timeout,
+        maximumAge: this.config.maximumAge,
       };
       
       // Standard getCurrentPosition call
@@ -108,11 +108,11 @@ export class LocationService {
     const gpsAccuracy = settingsService.getGpsAccuracy();
     const enableHighAccuracy = gpsAccuracy === 'high';
     
-    // Chrome-optimized options
+    // Use standard config values (already optimized for Chrome)
     const options = {
       enableHighAccuracy: enableHighAccuracy,
-      timeout: this.isChrome() ? 20000 : this.config.timeout,
-      maximumAge: this.isChrome() ? 5000 : this.config.maximumAge,
+      timeout: this.config.timeout,
+      maximumAge: this.config.maximumAge,
     };
     
     this.watchId = navigator.geolocation.watchPosition(

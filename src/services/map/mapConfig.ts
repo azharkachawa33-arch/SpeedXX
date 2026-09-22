@@ -1,11 +1,12 @@
 // Map configuration
-// Uses OpenStreetMap tiles (free, no API key required, Google Maps-like appearance)
+// Uses CartoDB tiles (free, no API key required, reliable)
 
 export const MAP_CONFIG = {
-  // Map style URL - Standard OpenStreetMap tiles (Google Maps-like appearance)
-  styleUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  // Map style URL - CartoDB Voyager (reliable, Google Maps-like appearance)
+  styleUrl: 'https://{a-c}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
   
   // Alternative styles (commented out, can be switched in production)
+  // OpenStreetMap: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   // CartoDB Positron: 'https://basemaps.cartocdn.com/positron/positron_tiles.json',
   // CartoDB Dark: 'https://basemaps.cartocdn.com/dark_all/dark_all.json',
   

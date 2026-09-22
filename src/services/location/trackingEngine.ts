@@ -39,21 +39,6 @@ export class TrackingEngine {
     this.setupVisibilityHandler();
   }
 
-  private setupVisibilityHandler(): void {
-    this.visibilityHandler = () => {
-      // When tab becomes visible again, ensure GPS is still running
-      if (this.state.state === 'running' && !this.locationService.isWatching()) {
-        // Restart GPS watching if it was stopped
-        this.locationService.startWatching(
-          (position) => this.handlePositionUpdate(position),
-          (error) => this.handleGpsError(error)
-        );
-      }
-    };
-
-    document.addEventListener('visibilitychange', this.visibilityHandler);
-  }
-
   private getInitialState(): TrackingState {
     return {
       state: 'idle',
@@ -124,9 +109,8 @@ export class TrackingEngine {
       lastPauseStart: Date.now()
     });
 
-    // Keep GPS watching even during pause for trip persistence
-    // This ensures trip continues even if user changes tabs
-    // Don't stop GPS watching - only manual stop should stop tracking
+    // Continue GPS watching during pause for trip persistence
+    // Don't stop GPS watching - this ensures trip continues across tab changes
   }
 
   /**
@@ -610,5 +594,20 @@ export class TrackingEngine {
       document.removeEventListener('visibilitychange', this.visibilityHandler);
       this.visibilityHandler = null;
     }
+  }
+
+  private setupVisibilityHandler(): void {
+    this.visibilityHandler = () => {
+      // When tab becomes visible again, ensure GPS is still running if trip is active
+      if (this.state.state === 'running' && !this.locationService.isWatching()) {
+        // Restart GPS watching if it was stopped
+        this.locationService.startWatching(
+          (position) => this.handlePositionUpdate(position),
+          (error) => this.handleGpsError(error)
+        );
+      }
+    };
+
+    document.addEventListener('visibilitychange', this.visibilityHandler);
   }
 }

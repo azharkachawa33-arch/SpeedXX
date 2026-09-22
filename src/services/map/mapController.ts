@@ -71,18 +71,18 @@ export class MapController {
       const rasterStyle = {
         version: 8 as const,
         sources: {
-          'osm-tiles': {
+          'carto-tiles': {
             type: 'raster' as const,
             tiles: [MAP_CONFIG.styleUrl],
             tileSize: 256,
-            attribution: '© OpenStreetMap contributors',
+            attribution: '© OpenStreetMap contributors © CARTO',
           },
         },
         layers: [
           {
-            id: 'osm-tiles',
+            id: 'carto-tiles',
             type: 'raster' as const,
-            source: 'osm-tiles',
+            source: 'carto-tiles',
             minzoom: MAP_CONFIG.minZoom,
             maxzoom: MAP_CONFIG.maxZoom,
           },
