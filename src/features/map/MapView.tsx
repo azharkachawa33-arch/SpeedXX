@@ -13,6 +13,7 @@ export const MapView: React.FC = () => {
   const [isFollowing, setIsFollowing] = useState(true);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const { addNotification } = useNotifications();
   
   const {
@@ -54,7 +55,7 @@ export const MapView: React.FC = () => {
       };
       controller.on('error', handleError);
 
-      // Simple timeout for Chrome
+      // Increased timeout for map loading (10 seconds for reliable connection)
       const timeoutId = setTimeout(() => {
         if (!mapLoaded && !mapError) {
           if (controller.isLoaded()) {
@@ -63,7 +64,7 @@ export const MapView: React.FC = () => {
             setMapError('Map took too long to load. Please check your internet connection and refresh.');
           }
         }
-      }, 3000); // 3 seconds for Chrome
+      }, 10000); // 10 seconds for reliable map loading
 
       return () => {
         clearTimeout(timeoutId);
@@ -78,7 +79,7 @@ export const MapView: React.FC = () => {
       setMapError('Map could not be loaded. Please check your internet connection.');
       setMapLoaded(false);
     }
-  }, []);
+  }, [retryKey]); // Re-initialize when retryKey changes
 
   // Update current position on map
   useEffect(() => {
@@ -116,10 +117,9 @@ export const MapView: React.FC = () => {
 
   const handleRetry = () => {
     setMapError(null);
-    // Force re-render to reinitialize map
-    if (mapContainerRef.current) {
-      mapContainerRef.current.innerHTML = '';
-    }
+    setMapLoaded(false);
+    // Force re-initialization by incrementing retryKey
+    setRetryKey(prev => prev + 1);
   };
 
   return (

@@ -1,9 +1,13 @@
 // Map configuration
-// Uses CartoDB tiles (free, no API key required, reliable)
+// Uses CartoDB Voyager tiles (free, no API key required, reliable)
 
 export const MAP_CONFIG = {
-  // Map style URL - CartoDB Voyager (reliable, Google Maps-like appearance)
-  styleUrl: 'https://{a-c}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+  // CartoDB Voyager tile URLs for MapLibre (explicit servers for better reliability)
+  tileUrls: [
+    'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+  ] as string[],
   
   // Alternative styles (commented out, can be switched in production)
   // OpenStreetMap: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',

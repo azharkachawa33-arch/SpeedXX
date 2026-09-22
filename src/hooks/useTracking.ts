@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { TrackingEngine } from '../services/location/trackingEngine';
+import { tripManager } from '../services/trip/tripManager';
 import type { TrackingState, TripState, GpsError, Trip } from '../models/types';
 import { convertSpeed, formatSpeed } from '../utils/speedConversion';
 import { metersToKilometers, metersToMiles, metersToNauticalMiles, formatDistance } from '../utils/distanceCalculation';
@@ -8,21 +9,7 @@ import { getSettingsService } from '../services/settings/settingsService';
 
 export function useTracking() {
   const trackingEngineRef = useRef<TrackingEngine | null>(null);
-  const [state, setState] = useState<TrackingState>(() => ({
-    state: 'idle',
-    currentPosition: null,
-    statistics: {
-      averageSpeed: 0,
-      maxSpeed: 0,
-      distance: 0,
-      duration: 0,
-    },
-    startTime: null,
-    pausedTime: 0,
-    lastPauseStart: null,
-    route: [],
-    error: null,
-  }));
+  const [state, setState] = useState<TrackingState>(() => tripManager.getTripState());
   
   // Load speed unit from settings
   const settingsService = getSettingsService();
@@ -31,40 +18,46 @@ export function useTracking() {
   const [gpsAvailable, setGpsAvailable] = useState(false);
   const [tripStorageAvailable, setTripStorageAvailable] = useState(false);
 
-  // Initialize tracking engine
+  // Initialize tracking engine using TripManager singleton
   useEffect(() => {
-    const engine = new TrackingEngine();
-    trackingEngineRef.current = engine;
+    // Initialize TripManager if not already initialized
+    tripManager.initialize();
+    
+    // Get the tracking engine from TripManager
+    const engine = tripManager.getTrackingEngine();
+    if (engine) {
+      trackingEngineRef.current = engine;
 
-    // Check GPS availability
-    const available = engine.locationService.isAvailable();
-    setGpsAvailable(available);
+      // Check GPS availability
+      const available = engine.locationService.isAvailable();
+      setGpsAvailable(available);
 
-    // Check trip storage availability
-    const storage = getTripStorage();
-    const storageAvailable = storage.isAvailable();
-    setTripStorageAvailable(storageAvailable);
+      // Check trip storage availability
+      const storage = getTripStorage();
+      const storageAvailable = storage.isAvailable();
+      setTripStorageAvailable(storageAvailable);
 
-    // Subscribe to state updates
-    engine.onStateUpdate((newState) => {
-      setState(newState);
-    });
+      // Subscribe to state updates
+      engine.onStateUpdate((newState) => {
+        setState(newState);
+      });
 
-    // Subscribe to errors
-    engine.onError((error) => {
-      // Error handled silently
-    });
+      // Subscribe to errors
+      engine.onError((error) => {
+        // Error handled silently
+      });
 
-    // Subscribe to trip completion
-    engine.onTripCompleted(async (trip: Trip) => {
-      if (storageAvailable) {
-        try {
-          await storage.saveTrip(trip);
-        } catch (error) {
-          // Trip save failed silently
+      // Subscribe to trip completion
+      engine.onTripCompleted(async (trip: Trip) => {
+        if (storageAvailable) {
+          try {
+            await storage.saveTrip(trip);
+          } catch (error) {
+            // Trip save failed silently
+          }
         }
-      }
-    });
+      });
+    }
 
     // IMPORTANT: Do NOT cleanup engine on unmount
     // This allows trip to continue running in background when user navigates to other tabs
@@ -72,12 +65,23 @@ export function useTracking() {
     return () => {
       // Never cleanup automatically - only on explicit stop
       // This ensures trip continues across tab changes
+      // The tracking engine lives at application level via TripManager
     };
   }, []); // Run once on mount
 
-  // Start trip
+  // Start trip - check if already active or completed first
   const startTrip = useCallback(async () => {
     if (!trackingEngineRef.current) return;
+    
+    // Check if trip is already active
+    if (tripManager.isTripActive()) {
+      throw new Error('A trip is already active. Stop the current trip first.');
+    }
+    
+    // If trip is completed, reset it first
+    if (tripManager.isTripCompleted()) {
+      trackingEngineRef.current.reset();
+    }
     
     try {
       await trackingEngineRef.current.startTrip();
@@ -233,12 +237,16 @@ export function useTracking() {
     settingsService.updateDistanceUnit(unit);
   }, [settingsService]);
 
-  // Retry after error
+  // Retry after error - only reset if in error or completed state
   const retryTrip = useCallback(async () => {
     if (!trackingEngineRef.current) return;
     
     try {
-      trackingEngineRef.current.reset();
+      const currentState = trackingEngineRef.current.getState();
+      // Only reset if in error or completed state, preserve other states
+      if (currentState.state === 'error' || currentState.state === 'completed') {
+        trackingEngineRef.current.reset();
+      }
       await startTrip();
     } catch (error) {
       throw error;

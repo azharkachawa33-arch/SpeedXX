@@ -188,10 +188,9 @@ export class TrackingEngine {
       this.tripCompletedCallback(completedTrip);
     }
 
-    // Reset to idle after a short delay
-    setTimeout(() => {
-      this.reset();
-    }, 1000);
+    // Keep state as completed - do NOT auto-reset
+    // User must explicitly start a new trip or press reset
+    // This prevents premature state loss
   }
 
   /**

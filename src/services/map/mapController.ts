@@ -73,7 +73,11 @@ export class MapController {
         sources: {
           'carto-tiles': {
             type: 'raster' as const,
-            tiles: [MAP_CONFIG.styleUrl],
+            tiles: [
+              'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+              'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+              'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+            ],
             tileSize: 256,
             attribution: '© OpenStreetMap contributors © CARTO',
           },
