@@ -76,7 +76,12 @@ export const MapView: React.FC = () => {
         controller.destroy();
       };
     } catch (error) {
-      setMapError('Map could not be loaded. Please check your internet connection.');
+      // Check if it's a CARTO key error
+      if (error instanceof Error && error.message.includes('CARTO map key')) {
+        setMapError('CARTO map key is not configured. Please check environment configuration.');
+      } else {
+        setMapError('Map could not be loaded. Please check your internet connection.');
+      }
       setMapLoaded(false);
     }
   }, [retryKey]); // Re-initialize when retryKey changes

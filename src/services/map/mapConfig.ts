@@ -1,13 +1,19 @@
 // Map configuration
-// Uses CartoDB Voyager tiles (free, no API key required, reliable)
+// Uses CartoDB Voyager tiles with API key
 
 export const MAP_CONFIG = {
-  // CartoDB Voyager tile URLs for MapLibre (explicit servers for better reliability)
-  tileUrls: [
-    'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-  ] as string[],
+  // CartoDB Voyager tile URLs with API key
+  getTileUrls: (): string[] => {
+    const apiKey = import.meta.env.VITE_CARTO_API_KEY;
+    if (!apiKey) {
+      throw new Error('CARTO map key is not configured');
+    }
+    return [
+      `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${apiKey}`,
+      `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${apiKey}`,
+      `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${apiKey}`
+    ];
+  },
   
   // Alternative styles (commented out, can be switched in production)
   // OpenStreetMap: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',

@@ -67,26 +67,30 @@ export class MapController {
       container.style.height = '100%';
       container.style.position = 'relative';
 
+      // Get tile URLs with API key
+      let tileUrls: string[];
+      try {
+        tileUrls = MAP_CONFIG.getTileUrls();
+      } catch (error) {
+        throw new Error('CARTO map key is not configured');
+      }
+
       // Use raster tiles for better compatibility
       const rasterStyle = {
         version: 8 as const,
         sources: {
-          'carto-tiles': {
+          'carto-voyager': {
             type: 'raster' as const,
-            tiles: [
-              'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-              'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-              'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-            ],
+            tiles: tileUrls,
             tileSize: 256,
             attribution: '© OpenStreetMap contributors © CARTO',
           },
         },
         layers: [
           {
-            id: 'carto-tiles',
+            id: 'carto-voyager-layer',
             type: 'raster' as const,
-            source: 'carto-tiles',
+            source: 'carto-voyager',
             minzoom: MAP_CONFIG.minZoom,
             maxzoom: MAP_CONFIG.maxZoom,
           },
@@ -134,6 +138,11 @@ export class MapController {
 
   private addRouteSource(): void {
     if (!this.map) return;
+
+    // Check if source already exists
+    if (this.map.getSource(this.routeSourceId)) {
+      return;
+    }
 
     this.map.addSource(this.routeSourceId, {
       type: 'geojson',
