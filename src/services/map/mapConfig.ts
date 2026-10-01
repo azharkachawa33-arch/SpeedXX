@@ -1,15 +1,29 @@
 // Map configuration
-// Uses CartoDB Voyager raster tiles (Google Maps-like appearance)
+// Uses CartoDB Voyager raster tiles with API key (Google Maps-like appearance)
 
 export const MAP_CONFIG = {
-  // CartoDB Voyager raster tiles - always use public tiles for production
+  // CartoDB Voyager raster tiles with API key
   getTileUrls: (): string[] => {
-    // Always use public CARTO tiles (no API key required)
-    // This ensures the map works in all environments
+    const apiKey = import.meta.env.VITE_CARTO_API_KEY;
+    
+    // For development, allow fallback if API key is missing
+    if (!apiKey && import.meta.env.DEV) {
+      return [
+        'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+        'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+        'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
+      ];
+    }
+    
+    // In production, API key is required
+    if (!apiKey) {
+      throw new Error('CARTO map key is not configured. Please add VITE_CARTO_API_KEY to Cloudflare Pages environment variables.');
+    }
+    
     return [
-      'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-      'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-      'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
+      `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${apiKey}`,
+      `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${apiKey}`,
+      `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${apiKey}`
     ];
   },
   
