@@ -67,7 +67,7 @@ export class MapController {
       container.style.height = '100%';
       container.style.position = 'relative';
 
-      // Get tile URLs with API key
+      // Get CARTO tile URLs with API key
       let tileUrls: string[];
       try {
         tileUrls = MAP_CONFIG.getTileUrls();
@@ -75,7 +75,7 @@ export class MapController {
         throw new Error('CARTO map key is not configured');
       }
 
-      // Use raster tiles for better compatibility
+      // Use raster tiles configuration
       const rasterStyle = {
         version: 8 as const,
         sources: {
@@ -104,7 +104,7 @@ export class MapController {
         zoom: MAP_CONFIG.initialZoom,
         minZoom: MAP_CONFIG.minZoom,
         maxZoom: MAP_CONFIG.maxZoom,
-        attributionControl: MAP_CONFIG.attributionControl ? {} : false,
+        attributionControl: {}, // Always show attribution for CARTO
         hash: MAP_CONFIG.hash,
       });
 
@@ -115,6 +115,10 @@ export class MapController {
         // Add route source on load
         this.map.on('load', () => {
           this.addRouteSource();
+          // Force resize after load to ensure proper rendering
+          if (this.map) {
+            this.map.resize();
+          }
         });
 
         // Handle map errors

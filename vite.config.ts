@@ -12,4 +12,7 @@ export default defineConfig({
     sourcemap: true,
     copyPublicDir: true,
   },
+  optimizeDeps: {
+    exclude: ['maplibre-gl'],
+  },
 });

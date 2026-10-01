@@ -1,17 +1,24 @@
 // Map configuration
-// Uses CartoDB Voyager tiles with API key
+// Uses CartoDB Voyager raster tiles (Google Maps-like appearance)
 
 export const MAP_CONFIG = {
-  // CartoDB Voyager tile URLs with API key
+  // CartoDB Voyager raster tiles (no API key for local development)
   getTileUrls: (): string[] => {
     const apiKey = import.meta.env.VITE_CARTO_API_KEY;
+    
+    // For production/Cloudflare, fallback to public tiles if no API key
     if (!apiKey) {
-      throw new Error('CARTO map key is not configured');
+      return [
+        'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+        'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+        'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
+      ];
     }
+    
     return [
-      `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${apiKey}`,
-      `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${apiKey}`,
-      `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${apiKey}`
+      `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${apiKey}`,
+      `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${apiKey}`,
+      `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${apiKey}`
     ];
   },
   
@@ -21,8 +28,8 @@ export const MAP_CONFIG = {
   // CartoDB Dark: 'https://basemaps.cartocdn.com/dark_all/dark_all.json',
   
   // Initial view
-  initialZoom: 15,
-  initialCenter: [0, 0], // Will be overridden by user's location
+  initialZoom: 3, // Lower zoom for better initial visibility
+  initialCenter: [0, 40], // Default to visible location (longitude 0, latitude 40 - Mediterranean Sea)
   
   // Map controls
   showScale: true,

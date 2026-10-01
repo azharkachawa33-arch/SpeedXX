@@ -55,7 +55,7 @@ export const MapView: React.FC = () => {
       };
       controller.on('error', handleError);
 
-      // Increased timeout for map loading (10 seconds for reliable connection)
+      // Increased timeout for CARTO vector style loading
       const timeoutId = setTimeout(() => {
         if (!mapLoaded && !mapError) {
           if (controller.isLoaded()) {
@@ -64,7 +64,7 @@ export const MapView: React.FC = () => {
             setMapError('Map took too long to load. Please check your internet connection and refresh.');
           }
         }
-      }, 10000); // 10 seconds for reliable map loading
+      }, 15000); // 15 seconds timeout for vector style loading
 
       return () => {
         clearTimeout(timeoutId);
