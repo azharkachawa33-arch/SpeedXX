@@ -2,23 +2,14 @@
 // Uses CartoDB Voyager raster tiles (Google Maps-like appearance)
 
 export const MAP_CONFIG = {
-  // CartoDB Voyager raster tiles (no API key for local development)
+  // CartoDB Voyager raster tiles - always use public tiles for production
   getTileUrls: (): string[] => {
-    const apiKey = import.meta.env.VITE_CARTO_API_KEY;
-    
-    // For production/Cloudflare, fallback to public tiles if no API key
-    if (!apiKey) {
-      return [
-        'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-        'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-        'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
-      ];
-    }
-    
+    // Always use public CARTO tiles (no API key required)
+    // This ensures the map works in all environments
     return [
-      `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${apiKey}`,
-      `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${apiKey}`,
-      `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${apiKey}`
+      'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+      'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+      'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
     ];
   },
   
