@@ -2,22 +2,19 @@
 // Uses CartoDB Voyager raster tiles with API key (Google Maps-like appearance)
 
 export const MAP_CONFIG = {
-  // CartoDB Voyager raster tiles with API key
+  // CARTO Voyager raster sources with API key
   getTileUrls: (): string[] => {
     const apiKey = import.meta.env.VITE_CARTO_API_KEY;
     
-    // For development, allow fallback if API key is missing
-    if (!apiKey && import.meta.env.DEV) {
+    // API key is now set as build-time env var on Cloudflare Workers
+    if (!apiKey) {
+      console.error('VITE_CARTO_API_KEY is not set! Check Cloudflare Workers build environment variables.');
+      // Fallback to public tiles for development
       return [
         'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
         'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
         'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
       ];
-    }
-    
-    // In production, API key is required
-    if (!apiKey) {
-      throw new Error('CARTO map key is not configured. Please add VITE_CARTO_API_KEY to Cloudflare Pages environment variables.');
     }
     
     return [

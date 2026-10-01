@@ -67,7 +67,7 @@ export class MapController {
       container.style.height = '100%';
       container.style.position = 'relative';
 
-      // Get CARTO tile URLs with API key
+      // Get CARTO raster tile URLs with API key
       let tileUrls: string[];
       try {
         tileUrls = MAP_CONFIG.getTileUrls();
